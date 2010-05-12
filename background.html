@@ -1,0 +1,79 @@
+<html>
+    <script type="text/javascript">
+        var gsTab = null;
+
+        function checkTabsForGrooveshark(tabs)
+        {
+            for(var i in tabs)
+            {
+                curTab = tabs[i];
+                if (curTab.url.indexOf(".grooveshark.com") != -1)
+                {
+                    if (gsTab == null)
+                    {
+                        gsTab = curTab;
+                    }
+                    else
+                    {
+                        chrome.tabs.remove(curTab.id);
+                    }
+                }
+            }
+        }
+
+        //when extension is loaded, check for an existing GS tab
+        chrome.tabs.getAllInWindow( null, function(tabs) {
+           checkTabsForGrooveshark(); 
+        });
+
+        chrome.tabs.onRemoved.addListener( function(tabId) {
+            
+            if(gsTab != null && gsTab.id == tabId)
+            {
+                gsTab = null;
+            }
+        });
+
+        chrome.tabs.onUpdated.addListener( function(tabId, changeInfo, tab) {
+            
+            if (gsTab != null &&  gsTab.id == tabId)
+            {
+                return;
+            }
+
+            if (tab.url.indexOf( ".grooveshark.com" ) != -1)
+            {
+                if (gsTab == null || gsTab.url.indexOf( ".grooveshark.com" ) == -1)
+                {
+                    gsTab = tab;
+                    return;
+                }
+                
+                newAction = tab.url.split("#");
+                
+                if (newAction.length > 1)
+                {
+                    res = gsTab.url.split("#");
+                    
+                    newURL = "";
+                    if (res.length > 1)
+                    {
+                        newURL = res[0] + "#" + newAction[1];
+                    }
+                    else
+                    {
+                        newURL = gsTab.url + "#" +  newAction[1];
+                    }
+                
+                    chrome.tabs.update(gsTab.id, { url: newURL });
+                    chrome.tabs.remove(tab.id);
+                }
+                else
+                {
+                    chrome.tabs.update(tab.id, { selected: true });
+                }
+            }
+        });
+
+    </script>
+</html>
