@@ -11,7 +11,7 @@
             for(var i in tabs)
             {
                 curTab = tabs[i];
-                if (curTab.url.indexOf("preview.grooveshark.com") != -1)
+                if (curTab.url.indexOf(".grooveshark.com") != -1)
                 {
                     if (gsTab == null)
                     {
@@ -45,9 +45,9 @@
             }
 	    console.log("got an add from: " + tab.url);
 
-            if (tab.url.indexOf( "preview.grooveshark.com" ) != -1)
+            if (tab.url.indexOf( ".grooveshark.com" ) != -1)
             {
-                if (gsTab == null || gsTab.url.indexOf( "preview.grooveshark.com" ) == -1)
+                if (gsTab == null || gsTab.url.indexOf( ".grooveshark.com" ) == -1)
                 {
                     gsTab = tab;
                     return;
