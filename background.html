@@ -1,13 +1,17 @@
 <html>
     <script type="text/javascript">
-        var gsTab = null;
-
-        function checkTabsForGrooveshark(tabs)
+       
+	//reference to the single grooveshark instance 
+	var gsTab = null;
+	
+	//check for a grooveshark tab in the list and set it as the active tab
+	//will select the first instance it finds, and close any others
+        function setupGroovesharkTab(tabs)
         {
             for(var i in tabs)
             {
                 curTab = tabs[i];
-                if (curTab.url.indexOf(".grooveshark.com") != -1)
+                if (curTab.url.indexOf("preview.grooveshark.com") != -1)
                 {
                     if (gsTab == null)
                     {
@@ -23,11 +27,10 @@
 
         //when extension is loaded, check for an existing GS tab
         chrome.tabs.getAllInWindow( null, function(tabs) {
-           checkTabsForGrooveshark(); 
+        	setupGroovesharkTab(tabs); 
         });
 
         chrome.tabs.onRemoved.addListener( function(tabId) {
-            
             if(gsTab != null && gsTab.id == tabId)
             {
                 gsTab = null;
@@ -35,15 +38,16 @@
         });
 
         chrome.tabs.onUpdated.addListener( function(tabId, changeInfo, tab) {
-            
+
             if (gsTab != null &&  gsTab.id == tabId)
             {
                 return;
             }
+	    console.log("got an add from: " + tab.url);
 
-            if (tab.url.indexOf( ".grooveshark.com" ) != -1)
+            if (tab.url.indexOf( "preview.grooveshark.com" ) != -1)
             {
-                if (gsTab == null || gsTab.url.indexOf( ".grooveshark.com" ) == -1)
+                if (gsTab == null || gsTab.url.indexOf( "preview.grooveshark.com" ) == -1)
                 {
                     gsTab = tab;
                     return;
@@ -54,7 +58,19 @@
                 if (newAction.length > 1)
                 {
                     res = gsTab.url.split("#");
-                    
+
+		    if (tab.url.indexOf( "/s/" ) != -1)
+		    {
+		    	urlSplit = tab.url.split( "/");
+		
+			if (urlSplit.length > 1)
+			{
+				token = urlSplit[urlSplit.length - 1];
+				addSong = "gs = document.getElementById('gsliteswf'); gs.addSongByToken('" + token  + "', false)";
+				chrome.tabs.executeScript(gsTab.id, { code: addSong} );
+			}
+		    }
+                
                     newURL = "";
                     if (res.length > 1)
                     {
@@ -64,7 +80,7 @@
                     {
                         newURL = gsTab.url + "#" +  newAction[1];
                     }
-                
+
                     chrome.tabs.update(gsTab.id, { url: newURL });
                     chrome.tabs.remove(tab.id);
                 }

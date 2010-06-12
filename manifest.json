@@ -2,6 +2,6 @@
     "name": "loneshark",
     "version": "1.0",
     "description":"Open grooveshark links within your active tab, so no more reloading, and juggling queues.",
-    "permissions" : [ "tabs" ],
+    "permissions" : [ "tabs", "http://*.grooveshark.com/*" ],
     "background_page": "background.html"
 }
