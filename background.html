@@ -1,95 +1,105 @@
 <html>
+    <script type="text/javascript" src="./GSTab.js" /> 
+        
     <script type="text/javascript">
        
 	//reference to the single grooveshark instance 
-	var gsTab = null;
-	
+	var activeTab = null;
+
+    function setActiveTab(tab)
+    {
+        activeTab = new GSTab(tab);
+    }
+    
 	//check for a grooveshark tab in the list and set it as the active tab
 	//will select the first instance it finds, and close any others
-        function setupGroovesharkTab(tabs)
+    function setupGroovesharkTab(windows)
+    {
+        for(var i in windows)
         {
-            for(var i in tabs)
+            for (var j in windows[i].tabs)
             {
-                curTab = tabs[i];
-                if (curTab.url.indexOf(".grooveshark.com") != -1)
+                currentTab = windows[i].tabs[j];
+                if (currentTab == null)
                 {
-                    if (gsTab == null)
+                    return;
+                } 
+                else if (GSTab.isGroovesharkURL(currentTab.url)) 
+                {
+                    if (activeTab == null)
                     {
-                        gsTab = curTab;
+                        setActiveTab(currentTab);
                     }
                     else
                     {
-                        chrome.tabs.remove(curTab.id);
+                        chrome.tabs.remove(currentTab.id);
                     }
                 }
             }
         }
+    }
+	
+    function addSongByToken(token)
+    {
+	    addSong = "gs = document.getElementById('gsliteswf'); gs.addSongByToken('" + token  + "', false)";
+		chrome.tabs.executeScript(activeTab.id, { code: addSong } );
+    }
 
-        //when extension is loaded, check for an existing GS tab
-        chrome.tabs.getAllInWindow( null, function(tabs) {
-        	setupGroovesharkTab(tabs); 
-        });
+    function routeGroovesharkLink(tabId, changeInfo, tab)
+    {
+        if (changeInfo.status == "loading")
+        {
+            return;
+        }
 
-        chrome.tabs.onRemoved.addListener( function(tabId) {
-            if(gsTab != null && gsTab.id == tabId)
+        if (GSTab.isGroovesharkURL(tab.url))
+        {
+            if (activeTab == null)
             {
-                gsTab = null;
+                setActiveTab(tab);
+                return;
             }
-        });
-
-        chrome.tabs.onUpdated.addListener( function(tabId, changeInfo, tab) {
-
-            if (gsTab != null &&  gsTab.id == tabId)
+            else if (activeTab.getTab().id == tabId)
             {
                 return;
             }
-	    console.log("got an add from: " + tab.url);
+            
+            gsTab = new GSTab(tab);
 
-            if (tab.url.indexOf( ".grooveshark.com" ) != -1)
+            if (gsTab.getFragment() != "")
             {
-                if (gsTab == null || gsTab.url.indexOf( ".grooveshark.com" ) == -1)
+                
+                if (gsTab.getAction() == GSActions.song) 
                 {
-                    gsTab = tab;
-                    return;
-                }
-                
-                newAction = tab.url.split("#");
-                
-                if (newAction.length > 1)
-                {
-                    res = gsTab.url.split("#");
-
-		    if (tab.url.indexOf( "/s/" ) != -1)
-		    {
-		    	urlSplit = tab.url.split( "/");
-		
-			if (urlSplit.length > 1)
-			{
-				token = urlSplit[urlSplit.length - 1];
-				addSong = "gs = document.getElementById('gsliteswf'); gs.addSongByToken('" + token  + "', false)";
-				chrome.tabs.executeScript(gsTab.id, { code: addSong} );
-			}
-		    }
-                
-                    newURL = "";
-                    if (res.length > 1)
+                    token = gsTab.getToken();
+                    
+                    if (token != null)
                     {
-                        newURL = res[0] + "#" + newAction[1];
+                        activeTab.setFragment(gsTab.getFragment(), function(tab) { addSongByToken(token); } );
                     }
-                    else
-                    {
-                        newURL = gsTab.url + "#" +  newAction[1];
-                    }
-
-                    chrome.tabs.update(gsTab.id, { url: newURL });
-                    chrome.tabs.remove(tab.id);
                 }
                 else
                 {
-                    chrome.tabs.update(tab.id, { selected: true });
+                    activeTab.setFragment(gsTab.getFragment());
                 }
             }
-        });
+
+            chrome.tabs.remove(tabId);
+        }
+    }
+
+    //when extension is loaded, check for an existing GS tab
+    chrome.windows.getAll({ populate: true }, setupGroovesharkTab);
+
+    chrome.tabs.onRemoved.addListener( function(tabId) {
+        if (activeTab != null && activeTab.id == tabId)
+        {
+            activeTab = null;
+        }
+    });
+
+    chrome.tabs.onUpdated.addListener(routeGroovesharkLink);
+    //chrome.tabs.onCreated.addListener(routeGroovesharkLink);
 
     </script>
 </html>
