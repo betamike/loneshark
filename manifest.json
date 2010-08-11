@@ -3,5 +3,8 @@
     "version": "1.0",
     "description":"Open grooveshark links within your active tab, so no more reloading, and juggling queues.",
     "permissions" : [ "tabs", "http://*.grooveshark.com/*" ],
-    "background_page": "background.html"
+    "background_page": "background.html",
+    "icons" : { "16": "images/logo16.png",
+                "48" : "images/logo64.png",
+                "128" : "images/logo128.png" }
 }
