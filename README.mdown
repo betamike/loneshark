@@ -1,0 +1,4 @@
+loneshark
+=========
+
+Loneshark is a simple Chrome extension that prevents Grooveshark.com from being open in multiple tabs.  Clicking on a share link for a playlist, artist, album, user etc. will navigate to the item's page within the Grooveshark client. When clicking a song share link, the song is automatically added to the end of your queue so you have no interruption to any currently playing music.
