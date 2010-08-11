@@ -42,7 +42,7 @@
     function addSongByToken(token)
     {
 	    addSong = "gs = document.getElementById('gsliteswf'); gs.addSongByToken('" + token  + "', false)";
-		chrome.tabs.executeScript(activeTab.id, { code: addSong } );
+		chrome.tabs.executeScript(activeTab.tab.id, { code: addSong } );
     }
 
     function routeGroovesharkLink(tabId, changeInfo, tab)
@@ -68,11 +68,10 @@
 
             if (gsTab.getFragment() != "")
             {
-                
                 if (gsTab.getAction() == GSActions.song) 
                 {
                     token = gsTab.getToken();
-                    
+
                     if (token != null)
                     {
                         activeTab.setFragment(gsTab.getFragment(), function(tab) { addSongByToken(token); } );
@@ -92,14 +91,13 @@
     chrome.windows.getAll({ populate: true }, setupGroovesharkTab);
 
     chrome.tabs.onRemoved.addListener( function(tabId) {
-        if (activeTab != null && activeTab.id == tabId)
+        if (activeTab != null && activeTab.tab.id == tabId)
         {
             activeTab = null;
         }
     });
 
     chrome.tabs.onUpdated.addListener(routeGroovesharkLink);
-    //chrome.tabs.onCreated.addListener(routeGroovesharkLink);
 
     </script>
 </html>

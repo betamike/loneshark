@@ -1,4 +1,4 @@
-var GSActions = {     
+var GSActions = {
     "none" : 0,
     "song" : 1, 
     "artist" : 2, 
@@ -35,8 +35,6 @@ GSTab.prototype.setFragment = function (newFragment, updateCallback)
     
     newUrl = this.domain + "/#" + this.fragment;
 
-    console.log("new: " + newUrl + " old: " + this.tab.url);
-    
     //prevents page from refreshing
     if (newUrl == this.tab.url)
     {
@@ -49,13 +47,13 @@ GSTab.prototype.setFragment = function (newFragment, updateCallback)
     }
     else 
     {
-        localTab = this.tab
+        var localTab = this;
         chrome.tabs.update(this.tab.id, { url: newUrl }, function(tab) { 
-                localTab = tab; updateCallback(tab); });
+                localTab.updateTab(tab); updateCallback(tab); });
     }
 }
 
-GSTab.prototype.updateTab = function(tab) { this.tab = tab} 
+GSTab.prototype.updateTab = function(tab) { this.tab = tab; } 
 
 GSTab.prototype.getFragment = function() {  return this.fragment; }
 
